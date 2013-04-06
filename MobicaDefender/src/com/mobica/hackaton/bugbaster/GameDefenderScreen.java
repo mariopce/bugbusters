@@ -2,6 +2,7 @@ package com.mobica.hackaton.bugbaster;
 
 import java.util.HashMap;
 
+import org.andengine.engine.Engine.EngineLock;
 import org.andengine.engine.camera.ZoomCamera;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
@@ -33,16 +34,9 @@ import android.widget.Toast;
  *
  */
 public class GameDefenderScreen extends SimpleBaseGameActivity implements IOnSceneTouchListener, IScrollDetectorListener, IPinchZoomDetectorListener {
-	// ===========================================================
-	// Constants
-	// ===========================================================
 
 	private static final int CAMERA_WIDTH = 720;
 	private static final int CAMERA_HEIGHT = 480;
-
-	// ===========================================================
-	// Fields
-	// ===========================================================
 
 	private ZoomCamera mZoomCamera;
 	private BitmapTextureAtlas mCardDeckTexture;
@@ -53,18 +47,6 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements IOnSce
 	private SurfaceScrollDetector mScrollDetector;
 	private PinchZoomDetector mPinchZoomDetector;
 	private float mPinchZoomStartedCameraZoomFactor;
-
-	// ===========================================================
-	// Constructors
-	// ===========================================================
-
-	// ===========================================================
-	// Getter & Setter
-	// ===========================================================
-
-	// ===========================================================
-	// Methods for/from SuperClass/Interfaces
-	// ===========================================================
 
 	@Override
 	public EngineOptions onCreateEngineOptions() {
@@ -159,6 +141,8 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements IOnSce
 	}
 
 
+	
+	
 	@Override
 	public boolean onSceneTouchEvent(final Scene pScene, final TouchEvent pSceneTouchEvent) {
 		this.mPinchZoomDetector.onTouchEvent(pSceneTouchEvent);
@@ -188,18 +172,7 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements IOnSce
 				switch(pSceneTouchEvent.getAction()) {
 					case TouchEvent.ACTION_DOWN:
 						this.setScale(1.25f);
-						this.mGrabbed = true;
-						break;
-					case TouchEvent.ACTION_MOVE:
-						if(this.mGrabbed) {
-							this.setPosition(pSceneTouchEvent.getX() - Card.CARD_WIDTH / 2, pSceneTouchEvent.getY() - Card.CARD_HEIGHT / 2);
-						}
-						break;
-					case TouchEvent.ACTION_UP:
-						if(this.mGrabbed) {
-							this.mGrabbed = false;
-							this.setScale(1.0f);
-						}
+						this.detachSelf();
 						break;
 				}
 				return true;
