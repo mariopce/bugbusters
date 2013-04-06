@@ -52,7 +52,7 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements IOnSce
 
 	private Scene mScene;
 
-	private HashMap<Card, ITextureRegion> mCardTotextureRegionMap;
+	private HashMap<Card, ITextureRegion> mMonsterTotextureRegionMap;
 	private SurfaceScrollDetector mScrollDetector;
 	private PinchZoomDetector mPinchZoomDetector;
 	private float mPinchZoomStartedCameraZoomFactor;
@@ -67,9 +67,9 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements IOnSce
 
 		if(MultiTouch.isSupported(this)) {
 			if(MultiTouch.isSupportedDistinct(this)) {
-				Toast.makeText(this, "MultiTouch detected --> Both controls will work properly!", Toast.LENGTH_SHORT).show();
+				Log.d(TAG, "MultiTouch detected --> Both controls will work properly!");
 			} else {
-				Toast.makeText(this, "MultiTouch detected, but your device has problems distinguishing between fingers.\n\nControls are placed at different vertical locations.", Toast.LENGTH_LONG).show();
+				Log.d(TAG,  "MultiTouch detected, but your device has problems distinguishing between fingers.\n\nControls are placed at different vertical locations.");
 			}
 		} else {
 			Log.d(TAG, "Sorry your device does NOT support MultiTouch!\n\n(Falling back to SingleTouch.)\n\nControls are placed at different vertical locations.");
@@ -86,12 +86,12 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements IOnSce
 		BitmapTextureAtlasTextureRegionFactory.createFromAsset(this.mCardDeckTexture, this, "carddeck_tiled.png", 0, 0);
 		this.mCardDeckTexture.load();
 
-		this.mCardTotextureRegionMap = new HashMap<Card, ITextureRegion>();
+		this.mMonsterTotextureRegionMap = new HashMap<Card, ITextureRegion>();
 
 		/* Extract the TextureRegion of each card in the whole deck. */
 		for(final Card card : Card.values()) {
 			final ITextureRegion cardTextureRegion = TextureRegionFactory.extractFromTexture(this.mCardDeckTexture, card.getTexturePositionX(), card.getTexturePositionY(), Card.CARD_WIDTH, Card.CARD_HEIGHT);
-			this.mCardTotextureRegionMap.put(card, cardTextureRegion);
+			this.mMonsterTotextureRegionMap.put(card, cardTextureRegion);
 		}
 		
 		try {
@@ -191,13 +191,8 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements IOnSce
 		return true;
 	}
 
-	// ===========================================================
-	// Methods
-	// ===========================================================
-
-	private void addCard(final Card pCard, final int pX, final int pY) {
-		final Sprite sprite = new Sprite(pX, pY, this.mCardTotextureRegionMap.get(pCard), this.getVertexBufferObjectManager()) {
-			boolean mGrabbed = false;
+	private void addMonster(final Card pCard, final int pX, final int pY) {
+		final Sprite sprite = new Sprite(pX, pY, this.mMonsterTotextureRegionMap.get(pCard), this.getVertexBufferObjectManager()) {
 
 			@Override
 			public boolean onAreaTouched(final TouchEvent pSceneTouchEvent, final float pTouchAreaLocalX, final float pTouchAreaLocalY) {
