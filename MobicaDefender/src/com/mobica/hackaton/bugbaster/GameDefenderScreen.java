@@ -3,9 +3,12 @@ package com.mobica.hackaton.bugbaster;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 
 import org.andengine.engine.Engine.EngineLock;
 import org.andengine.engine.camera.ZoomCamera;
+import org.andengine.engine.handler.IUpdateHandler;
+import org.andengine.engine.handler.physics.PhysicsHandler;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
@@ -34,6 +37,7 @@ import org.andengine.util.adt.io.in.IInputStreamOpener;
 import org.andengine.util.debug.Debug;
 
 import com.mobica.hackaton.bugbaster.adt.card.Card;
+import com.mobica.hackaton.bugbaster.adt.monsters.Monsters;
 
 import android.util.Log;
 import android.widget.Toast;
@@ -130,6 +134,7 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements
 		this.mMobicaLogoTexture.load();
 		this.mMobicaTextureRegion = TextureRegionFactory
 				.extractFromTexture(this.mMobicaLogoTexture);
+<<<<<<< HEAD
 	}
 
 	private void createMonster() throws IOException {
@@ -145,6 +150,8 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements
 		this.mMonsterTexture.load();
 		this.mMonsterTextureRegion = TextureRegionFactory
 				.extractFromTexture(this.mMonsterTexture);
+=======
+>>>>>>> origin/master
 	}
 
 	@Override
@@ -164,6 +171,11 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements
 				.getHeight()) / 2;
 		final Sprite mobicaLogo = new Sprite(centerX, centerY,
 				this.mMobicaTextureRegion, this.getVertexBufferObjectManager());
+<<<<<<< HEAD
+=======
+		final PhysicsHandler physicsHandler = new PhysicsHandler(mobicaLogo);
+		mobicaLogo.registerUpdateHandler(physicsHandler);
+>>>>>>> origin/master
 		mScene.attachChild(mobicaLogo);
 
 		final Sprite monster = new Sprite(centerX - 100, centerY - 80,
@@ -178,7 +190,36 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements
 		mScene.setOnSceneTouchListener(this);
 		mScene.setTouchAreaBindingOnActionDownEnabled(true);
 
+		/* The actual collision-checking. */
+		mScene.registerUpdateHandler(new ColisionDetect(mobicaLogo, null));
+
 		return this.mScene;
+	}
+
+	class ColisionDetect implements IUpdateHandler {
+
+		private Sprite mMobicaLogo;
+
+		public ColisionDetect(Sprite mobicaLogo, List<Monsters> monsters) {
+			this.mMobicaLogo = mobicaLogo;
+		}
+
+		@Override
+		public void reset() {
+		}
+
+		@Override
+		public void onUpdate(final float pSecondsElapsed) {
+			if (mMobicaLogo.collidesWith(mMobicaLogo)) {
+				mMobicaLogo.setColor(1, 0, 0);
+			} else {
+				mMobicaLogo.setColor(0, 1, 0);
+			}
+
+			if (!mZoomCamera.isRectangularShapeVisible(mMobicaLogo)) {
+				mMobicaLogo.setColor(1, 0, 1);
+			}
+		}
 	}
 
 	@Override
