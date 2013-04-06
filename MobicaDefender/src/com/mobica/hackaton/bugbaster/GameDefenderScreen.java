@@ -2,8 +2,10 @@ package com.mobica.hackaton.bugbaster;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 import org.andengine.engine.Engine.EngineLock;
 import org.andengine.engine.camera.ZoomCamera;
@@ -38,7 +40,9 @@ import org.andengine.util.debug.Debug;
 
 import com.mobica.hackaton.bugbaster.adt.card.Card;
 import com.mobica.hackaton.bugbaster.adt.monsters.Monsters;
+import com.mobica.hackaton.bugbaster.monsters.Monster;
 
+import android.graphics.Point;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -63,9 +67,9 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements
 	private PinchZoomDetector mPinchZoomDetector;
 	private float mPinchZoomStartedCameraZoomFactor;
 	private ITexture mMobicaLogoTexture;
-	private ITexture mMonsterTexture;
+
 	private TextureRegion mMobicaTextureRegion;
-	private TextureRegion mMonsterTextureRegion;
+	private ArrayList<Monster> mMonsters;
 
 	@Override
 	public EngineOptions onCreateEngineOptions() {
@@ -134,24 +138,22 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements
 		this.mMobicaLogoTexture.load();
 		this.mMobicaTextureRegion = TextureRegionFactory
 				.extractFromTexture(this.mMobicaLogoTexture);
-<<<<<<< HEAD
+
 	}
 
 	private void createMonster() throws IOException {
-		this.mMonsterTexture = new BitmapTexture(this.getTextureManager(),
-				new IInputStreamOpener() {
-					@Override
-					public InputStream open() throws IOException {
-						return getAssets()
-								.open("gfx/last-guardian-sprites.png");
-					}
-				});
+		// "gfx/last-guardian-sprites.png"
 
-		this.mMonsterTexture.load();
-		this.mMonsterTextureRegion = TextureRegionFactory
-				.extractFromTexture(this.mMonsterTexture);
-=======
->>>>>>> origin/master
+		Random generator = new Random();
+
+		this.mMonsters = new ArrayList<Monster>();
+		for (int i = 0; i < 5; i++) {
+			Monster m = new Monster("gfx/last-guardian-sprites.png", this,
+					new Point(generator.nextInt(800), generator.nextInt(400)));
+			this.mMonsters.add(m);
+			m.loadTexures();
+		}
+
 	}
 
 	@Override
@@ -171,16 +173,15 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements
 				.getHeight()) / 2;
 		final Sprite mobicaLogo = new Sprite(centerX, centerY,
 				this.mMobicaTextureRegion, this.getVertexBufferObjectManager());
-<<<<<<< HEAD
-=======
+
 		final PhysicsHandler physicsHandler = new PhysicsHandler(mobicaLogo);
 		mobicaLogo.registerUpdateHandler(physicsHandler);
->>>>>>> origin/master
+
 		mScene.attachChild(mobicaLogo);
 
-		final Sprite monster = new Sprite(centerX - 100, centerY - 80,
-				this.mMonsterTextureRegion, this.getVertexBufferObjectManager());
-		mScene.attachChild(monster);
+		for (Monster m : this.mMonsters) {
+			mScene.attachChild(m.createMsprite());
+		}
 
 		mScene.setBackground(new Background(0.09804f, 0.6274f, 0.8784f));
 
