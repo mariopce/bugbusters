@@ -116,15 +116,11 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements IOnSce
 
 	@Override
 	public Scene onCreateScene() {
-		this.mEngine.registerUpdateHandler(new FPSLogger());
+		mEngine.registerUpdateHandler(new FPSLogger());
 
-		this.mScene = new Scene();
-		this.mScene.setOnAreaTouchTraversalFrontToBack();
+		mScene = new Scene();
+		mScene.setOnAreaTouchTraversalFrontToBack();
 
-		this.addCard(Card.CLUB_ACE, 200, 100);
-		this.addCard(Card.HEART_ACE, 200, 260);
-		this.addCard(Card.DIAMOND_ACE, 440, 100);
-		this.addCard(Card.SPADE_ACE, 440, 260);
 		
 		/* Calculate the coordinates for the face, so its centered on the camera. */
 		final float centerX = (CAMERA_WIDTH - this.mMobicaTextureRegion.getWidth()) / 2;
@@ -132,13 +128,13 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements IOnSce
 		final Sprite mobicaLogo = new Sprite(centerX, centerY, this.mMobicaTextureRegion, this.getVertexBufferObjectManager());
 		mScene.attachChild(mobicaLogo);
 
-		this.mScene.setBackground(new Background(0.09804f, 0.6274f, 0.8784f));
+		mScene.setBackground(new Background(0.09804f, 0.6274f, 0.8784f));
 
-		this.mScrollDetector = new SurfaceScrollDetector(this);
-		this.mPinchZoomDetector = new PinchZoomDetector(this);
+		mScrollDetector = new SurfaceScrollDetector(this);
+		mPinchZoomDetector = new PinchZoomDetector(this);
 
-		this.mScene.setOnSceneTouchListener(this);
-		this.mScene.setTouchAreaBindingOnActionDownEnabled(true);
+		mScene.setOnSceneTouchListener(this);
+		mScene.setTouchAreaBindingOnActionDownEnabled(true);
 
 		return this.mScene;
 	}
