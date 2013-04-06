@@ -35,6 +35,7 @@ import org.andengine.util.debug.Debug;
 
 import com.mobica.hackaton.bugbaster.adt.card.Card;
 
+import android.util.Log;
 import android.widget.Toast;
 
 /**
@@ -44,6 +45,7 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements IOnSce
 
 	private static final int CAMERA_WIDTH = 720;
 	private static final int CAMERA_HEIGHT = 480;
+	private static final String TAG = "GameDefenderScreen";
 
 	private ZoomCamera mZoomCamera;
 	private BitmapTextureAtlas mCardDeckTexture;
@@ -70,7 +72,7 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements IOnSce
 				Toast.makeText(this, "MultiTouch detected, but your device has problems distinguishing between fingers.\n\nControls are placed at different vertical locations.", Toast.LENGTH_LONG).show();
 			}
 		} else {
-			Toast.makeText(this, "Sorry your device does NOT support MultiTouch!\n\n(Falling back to SingleTouch.)\n\nControls are placed at different vertical locations.", Toast.LENGTH_LONG).show();
+			Log.d(TAG, "Sorry your device does NOT support MultiTouch!\n\n(Falling back to SingleTouch.)\n\nControls are placed at different vertical locations.");
 		}
 
 		return engineOptions;
@@ -123,6 +125,12 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements IOnSce
 		this.addCard(Card.HEART_ACE, 200, 260);
 		this.addCard(Card.DIAMOND_ACE, 440, 100);
 		this.addCard(Card.SPADE_ACE, 440, 260);
+		
+		/* Calculate the coordinates for the face, so its centered on the camera. */
+		final float centerX = (CAMERA_WIDTH - this.mMobicaTextureRegion.getWidth()) / 2;
+		final float centerY = (CAMERA_HEIGHT - this.mMobicaTextureRegion.getHeight()) / 2;
+		final Sprite mobicaLogo = new Sprite(centerX, centerY, this.mMobicaTextureRegion, this.getVertexBufferObjectManager());
+		mScene.attachChild(mobicaLogo);
 
 		this.mScene.setBackground(new Background(0.09804f, 0.6274f, 0.8784f));
 
