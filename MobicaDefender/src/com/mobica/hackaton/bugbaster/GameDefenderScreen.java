@@ -1,5 +1,7 @@
 package com.mobica.hackaton.bugbaster;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 
 import org.andengine.engine.Engine.EngineLock;
@@ -19,12 +21,17 @@ import org.andengine.input.touch.detector.PinchZoomDetector.IPinchZoomDetectorLi
 import org.andengine.input.touch.detector.ScrollDetector;
 import org.andengine.input.touch.detector.ScrollDetector.IScrollDetectorListener;
 import org.andengine.input.touch.detector.SurfaceScrollDetector;
+import org.andengine.opengl.texture.ITexture;
 import org.andengine.opengl.texture.TextureOptions;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegionFactory;
+import org.andengine.opengl.texture.bitmap.BitmapTexture;
 import org.andengine.opengl.texture.region.ITextureRegion;
+import org.andengine.opengl.texture.region.TextureRegion;
 import org.andengine.opengl.texture.region.TextureRegionFactory;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
+import org.andengine.util.adt.io.in.IInputStreamOpener;
+import org.andengine.util.debug.Debug;
 
 import com.mobica.hackaton.bugbaster.adt.card.Card;
 
@@ -47,6 +54,8 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements IOnSce
 	private SurfaceScrollDetector mScrollDetector;
 	private PinchZoomDetector mPinchZoomDetector;
 	private float mPinchZoomStartedCameraZoomFactor;
+	private ITexture mMobicaLogoTexture;
+	private TextureRegion mMobicaTextureRegion;
 
 	@Override
 	public EngineOptions onCreateEngineOptions() {
@@ -82,6 +91,25 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements IOnSce
 			final ITextureRegion cardTextureRegion = TextureRegionFactory.extractFromTexture(this.mCardDeckTexture, card.getTexturePositionX(), card.getTexturePositionY(), Card.CARD_WIDTH, Card.CARD_HEIGHT);
 			this.mCardTotextureRegionMap.put(card, cardTextureRegion);
 		}
+		
+		try {
+			createMobicaLogo();
+		} catch (IOException e) {
+			Debug.e(e);
+		}
+		
+	}
+
+	private void createMobicaLogo() throws IOException {
+		this.mMobicaLogoTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
+			@Override
+			public InputStream open() throws IOException {
+				return getAssets().open("gfx/mobica_logo.png");
+			}
+		});
+
+		this.mMobicaLogoTexture.load();
+		this.mMobicaTextureRegion = TextureRegionFactory.extractFromTexture(this.mMobicaLogoTexture);		
 	}
 
 	@Override
