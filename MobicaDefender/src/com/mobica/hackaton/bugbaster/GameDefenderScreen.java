@@ -3,9 +3,12 @@ package com.mobica.hackaton.bugbaster;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 
 import org.andengine.engine.Engine.EngineLock;
 import org.andengine.engine.camera.ZoomCamera;
+import org.andengine.engine.handler.IUpdateHandler;
+import org.andengine.engine.handler.physics.PhysicsHandler;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
@@ -34,6 +37,7 @@ import org.andengine.util.adt.io.in.IInputStreamOpener;
 import org.andengine.util.debug.Debug;
 
 import com.mobica.hackaton.bugbaster.adt.card.Card;
+import com.mobica.hackaton.bugbaster.adt.monsters.Monsters;
 
 import android.util.Log;
 import android.widget.Toast;
@@ -41,7 +45,9 @@ import android.widget.Toast;
 /**
  *
  */
-public class GameDefenderScreen extends SimpleBaseGameActivity implements IOnSceneTouchListener, IScrollDetectorListener, IPinchZoomDetectorListener {
+public class GameDefenderScreen extends SimpleBaseGameActivity implements
+		IOnSceneTouchListener, IScrollDetectorListener,
+		IPinchZoomDetectorListener {
 
 	private static final int CAMERA_WIDTH = 720;
 	private static final int CAMERA_HEIGHT = 480;
@@ -63,16 +69,21 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements IOnSce
 	public EngineOptions onCreateEngineOptions() {
 		this.mZoomCamera = new ZoomCamera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
 
-		final EngineOptions engineOptions = new EngineOptions(true, ScreenOrientation.LANDSCAPE_FIXED, new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT), this.mZoomCamera);
+		final EngineOptions engineOptions = new EngineOptions(true,
+				ScreenOrientation.LANDSCAPE_FIXED, new RatioResolutionPolicy(
+						CAMERA_WIDTH, CAMERA_HEIGHT), this.mZoomCamera);
 
-		if(MultiTouch.isSupported(this)) {
-			if(MultiTouch.isSupportedDistinct(this)) {
-				Log.d(TAG, "MultiTouch detected --> Both controls will work properly!");
+		if (MultiTouch.isSupported(this)) {
+			if (MultiTouch.isSupportedDistinct(this)) {
+				Log.d(TAG,
+						"MultiTouch detected --> Both controls will work properly!");
 			} else {
-				Log.d(TAG,  "MultiTouch detected, but your device has problems distinguishing between fingers.\n\nControls are placed at different vertical locations.");
+				Log.d(TAG,
+						"MultiTouch detected, but your device has problems distinguishing between fingers.\n\nControls are placed at different vertical locations.");
 			}
 		} else {
-			Log.d(TAG, "Sorry your device does NOT support MultiTouch!\n\n(Falling back to SingleTouch.)\n\nControls are placed at different vertical locations.");
+			Log.d(TAG,
+					"Sorry your device does NOT support MultiTouch!\n\n(Falling back to SingleTouch.)\n\nControls are placed at different vertical locations.");
 		}
 
 		return engineOptions;
@@ -82,36 +93,44 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements IOnSce
 	public void onCreateResources() {
 		BitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
 
-		this.mCardDeckTexture = new BitmapTextureAtlas(this.getTextureManager(), 1024, 512, TextureOptions.BILINEAR);
-		BitmapTextureAtlasTextureRegionFactory.createFromAsset(this.mCardDeckTexture, this, "carddeck_tiled.png", 0, 0);
+		this.mCardDeckTexture = new BitmapTextureAtlas(
+				this.getTextureManager(), 1024, 512, TextureOptions.BILINEAR);
+		BitmapTextureAtlasTextureRegionFactory.createFromAsset(
+				this.mCardDeckTexture, this, "carddeck_tiled.png", 0, 0);
 		this.mCardDeckTexture.load();
 
 		this.mMonsterTotextureRegionMap = new HashMap<Card, ITextureRegion>();
 
 		/* Extract the TextureRegion of each card in the whole deck. */
-		for(final Card card : Card.values()) {
-			final ITextureRegion cardTextureRegion = TextureRegionFactory.extractFromTexture(this.mCardDeckTexture, card.getTexturePositionX(), card.getTexturePositionY(), Card.CARD_WIDTH, Card.CARD_HEIGHT);
+		for (final Card card : Card.values()) {
+			final ITextureRegion cardTextureRegion = TextureRegionFactory
+					.extractFromTexture(this.mCardDeckTexture,
+							card.getTexturePositionX(),
+							card.getTexturePositionY(), Card.CARD_WIDTH,
+							Card.CARD_HEIGHT);
 			this.mMonsterTotextureRegionMap.put(card, cardTextureRegion);
 		}
-		
+
 		try {
 			createMobicaLogo();
 		} catch (IOException e) {
 			Debug.e(e);
 		}
-		
+
 	}
 
 	private void createMobicaLogo() throws IOException {
-		this.mMobicaLogoTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
-			@Override
-			public InputStream open() throws IOException {
-				return getAssets().open("gfx/mobica_logo.png");
-			}
-		});
+		this.mMobicaLogoTexture = new BitmapTexture(this.getTextureManager(),
+				new IInputStreamOpener() {
+					@Override
+					public InputStream open() throws IOException {
+						return getAssets().open("gfx/mobica_logo.png");
+					}
+				});
 
 		this.mMobicaLogoTexture.load();
-		this.mMobicaTextureRegion = TextureRegionFactory.extractFromTexture(this.mMobicaLogoTexture);		
+		this.mMobicaTextureRegion = TextureRegionFactory
+				.extractFromTexture(this.mMobicaLogoTexture);
 	}
 
 	@Override
@@ -121,11 +140,18 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements IOnSce
 		mScene = new Scene();
 		mScene.setOnAreaTouchTraversalFrontToBack();
 
-		
-		/* Calculate the coordinates for the face, so its centered on the camera. */
-		final float centerX = (CAMERA_WIDTH - this.mMobicaTextureRegion.getWidth()) / 2;
-		final float centerY = (CAMERA_HEIGHT - this.mMobicaTextureRegion.getHeight()) / 2;
-		final Sprite mobicaLogo = new Sprite(centerX, centerY, this.mMobicaTextureRegion, this.getVertexBufferObjectManager());
+		/*
+		 * Calculate the coordinates for the face, so its centered on the
+		 * camera.
+		 */
+		final float centerX = (CAMERA_WIDTH - this.mMobicaTextureRegion
+				.getWidth()) / 2;
+		final float centerY = (CAMERA_HEIGHT - this.mMobicaTextureRegion
+				.getHeight()) / 2;
+		final Sprite mobicaLogo = new Sprite(centerX, centerY,
+				this.mMobicaTextureRegion, this.getVertexBufferObjectManager());
+		final PhysicsHandler physicsHandler = new PhysicsHandler(mobicaLogo);
+		mobicaLogo.registerUpdateHandler(physicsHandler);
 		mScene.attachChild(mobicaLogo);
 
 		mScene.setBackground(new Background(0.09804f, 0.6274f, 0.8784f));
@@ -136,53 +162,92 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements IOnSce
 		mScene.setOnSceneTouchListener(this);
 		mScene.setTouchAreaBindingOnActionDownEnabled(true);
 
+		/* The actual collision-checking. */
+		mScene.registerUpdateHandler(new ColisionDetect(mobicaLogo, null));
+
 		return this.mScene;
 	}
 
+	class ColisionDetect implements IUpdateHandler {
+
+		private Sprite mMobicaLogo;
+
+		public ColisionDetect(Sprite mobicaLogo, List<Monsters> monsters) {
+			this.mMobicaLogo = mobicaLogo;
+		}
+
+		@Override
+		public void reset() {
+		}
+
+		@Override
+		public void onUpdate(final float pSecondsElapsed) {
+			if (mMobicaLogo.collidesWith(mMobicaLogo)) {
+				mMobicaLogo.setColor(1, 0, 0);
+			} else {
+				mMobicaLogo.setColor(0, 1, 0);
+			}
+
+			if (!mZoomCamera.isRectangularShapeVisible(mMobicaLogo)) {
+				mMobicaLogo.setColor(1, 0, 1);
+			}
+		}
+	}
+
 	@Override
-	public void onScrollStarted(final ScrollDetector pScollDetector, final int pPointerID, final float pDistanceX, final float pDistanceY) {
+	public void onScrollStarted(final ScrollDetector pScollDetector,
+			final int pPointerID, final float pDistanceX, final float pDistanceY) {
 		final float zoomFactor = this.mZoomCamera.getZoomFactor();
-		this.mZoomCamera.offsetCenter(-pDistanceX / zoomFactor, -pDistanceY / zoomFactor);
+		this.mZoomCamera.offsetCenter(-pDistanceX / zoomFactor, -pDistanceY
+				/ zoomFactor);
 	}
 
 	@Override
-	public void onScroll(final ScrollDetector pScollDetector, final int pPointerID, final float pDistanceX, final float pDistanceY) {
+	public void onScroll(final ScrollDetector pScollDetector,
+			final int pPointerID, final float pDistanceX, final float pDistanceY) {
 		final float zoomFactor = this.mZoomCamera.getZoomFactor();
-		this.mZoomCamera.offsetCenter(-pDistanceX / zoomFactor, -pDistanceY / zoomFactor);
+		this.mZoomCamera.offsetCenter(-pDistanceX / zoomFactor, -pDistanceY
+				/ zoomFactor);
 	}
-	
+
 	@Override
-	public void onScrollFinished(final ScrollDetector pScollDetector, final int pPointerID, final float pDistanceX, final float pDistanceY) {
+	public void onScrollFinished(final ScrollDetector pScollDetector,
+			final int pPointerID, final float pDistanceX, final float pDistanceY) {
 		final float zoomFactor = this.mZoomCamera.getZoomFactor();
-		this.mZoomCamera.offsetCenter(-pDistanceX / zoomFactor, -pDistanceY / zoomFactor);
+		this.mZoomCamera.offsetCenter(-pDistanceX / zoomFactor, -pDistanceY
+				/ zoomFactor);
 	}
 
 	@Override
-	public void onPinchZoomStarted(final PinchZoomDetector pPinchZoomDetector, final TouchEvent pTouchEvent) {
-		this.mPinchZoomStartedCameraZoomFactor = this.mZoomCamera.getZoomFactor();
+	public void onPinchZoomStarted(final PinchZoomDetector pPinchZoomDetector,
+			final TouchEvent pTouchEvent) {
+		this.mPinchZoomStartedCameraZoomFactor = this.mZoomCamera
+				.getZoomFactor();
 	}
 
 	@Override
-	public void onPinchZoom(final PinchZoomDetector pPinchZoomDetector, final TouchEvent pTouchEvent, final float pZoomFactor) {
-		this.mZoomCamera.setZoomFactor(this.mPinchZoomStartedCameraZoomFactor * pZoomFactor);
+	public void onPinchZoom(final PinchZoomDetector pPinchZoomDetector,
+			final TouchEvent pTouchEvent, final float pZoomFactor) {
+		this.mZoomCamera.setZoomFactor(this.mPinchZoomStartedCameraZoomFactor
+				* pZoomFactor);
 	}
 
 	@Override
-	public void onPinchZoomFinished(final PinchZoomDetector pPinchZoomDetector, final TouchEvent pTouchEvent, final float pZoomFactor) {
-		this.mZoomCamera.setZoomFactor(this.mPinchZoomStartedCameraZoomFactor * pZoomFactor);
+	public void onPinchZoomFinished(final PinchZoomDetector pPinchZoomDetector,
+			final TouchEvent pTouchEvent, final float pZoomFactor) {
+		this.mZoomCamera.setZoomFactor(this.mPinchZoomStartedCameraZoomFactor
+				* pZoomFactor);
 	}
 
-
-	
-	
 	@Override
-	public boolean onSceneTouchEvent(final Scene pScene, final TouchEvent pSceneTouchEvent) {
+	public boolean onSceneTouchEvent(final Scene pScene,
+			final TouchEvent pSceneTouchEvent) {
 		this.mPinchZoomDetector.onTouchEvent(pSceneTouchEvent);
 
-		if(this.mPinchZoomDetector.isZooming()) {
+		if (this.mPinchZoomDetector.isZooming()) {
 			this.mScrollDetector.setEnabled(false);
 		} else {
-			if(pSceneTouchEvent.isActionDown()) {
+			if (pSceneTouchEvent.isActionDown()) {
 				this.mScrollDetector.setEnabled(true);
 			}
 			this.mScrollDetector.onTouchEvent(pSceneTouchEvent);
@@ -192,15 +257,18 @@ public class GameDefenderScreen extends SimpleBaseGameActivity implements IOnSce
 	}
 
 	private void addMonster(final Card pCard, final int pX, final int pY) {
-		final Sprite sprite = new Sprite(pX, pY, this.mMonsterTotextureRegionMap.get(pCard), this.getVertexBufferObjectManager()) {
+		final Sprite sprite = new Sprite(pX, pY,
+				this.mMonsterTotextureRegionMap.get(pCard),
+				this.getVertexBufferObjectManager()) {
 
 			@Override
-			public boolean onAreaTouched(final TouchEvent pSceneTouchEvent, final float pTouchAreaLocalX, final float pTouchAreaLocalY) {
-				switch(pSceneTouchEvent.getAction()) {
-					case TouchEvent.ACTION_DOWN:
-						this.setScale(1.25f);
-						this.detachSelf();
-						break;
+			public boolean onAreaTouched(final TouchEvent pSceneTouchEvent,
+					final float pTouchAreaLocalX, final float pTouchAreaLocalY) {
+				switch (pSceneTouchEvent.getAction()) {
+				case TouchEvent.ACTION_DOWN:
+					this.setScale(1.25f);
+					this.detachSelf();
+					break;
 				}
 				return true;
 			}
